@@ -1,0 +1,3 @@
+Clone the repo and follow the tokenization instructions at https://github.com/uhh-pd-ml/enhancing-ntp4jets. You want to make sure that the dataset you use when training the tokenizer covers as much of the phase space as possible.
+
+I should also say that the framework uses hydra for config file management. In the readme you will see example_experiment_tokenization_transformer mentioned. You want to check the contents of this config (and of the ones it inherits from) and adapt it to your needs.
