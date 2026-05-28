@@ -1,0 +1,113 @@
+# @package _global_
+
+# Train VQ-VAE tokenizer on local JetClass data for CMS L1T application.
+# Uses kinematic-only features (pt, etarel, phirel) with no PID flags.
+#
+# To run:
+#   cd Tokenizer/
+#   python gabbro/train.py experiment=l1t_tokenization
+
+defaults:
+  - override /feature_dict: feature_dict_l1t_jets.yaml
+  - override /data: iter_dataset_l1t_parquet.yaml
+  - override /model: model_vqvae_transformer.yaml
+  - override /callbacks: callbacks_for_multihead_training.yaml
+  - override /trainer: gpu.yaml  # uses CPU; change to gpu.yaml if GPU available
+
+load_weights_from: false
+load_weights_strict: false
+continue_from_checkpoint: null
+
+project_name: "l1t_tokenization"
+tags: ["vqvae", "l1t", "jetclass_kin"]
+
+run_note: "VQ-VAE tokenizer trained on JetClass kinematics for CMS L1T phase space coverage"
+
+seed: 42
+
+data:
+  batch_size:
+    train: 512
+    val: 1000
+    test: 1000
+  dataset_kwargs_common:
+    pad_length: 7
+    feature_dict: ${feature_dict}
+    feature_dict_jet: null
+
+trainer:
+  num_sanity_val_steps: 0
+  max_steps: 20000
+  gradient_clip_val: 5
+  log_every_n_steps: 50
+  devices: 1
+  num_nodes: 1
+  val_check_interval: 1000  # run validation every 1000 steps
+  check_val_every_n_epoch: null
+  limit_train_batches: 3906  # 2 files * 10 * 100000 events / 512 batch_size
+  limit_val_batches: 20
+
+model:
+  model_kwargs_loaded: null
+  optimizer:
+    _target_: torch.optim.AdamW
+    _partial_: true
+    lr: 0.001
+    weight_decay: 1e-2
+  scheduler:
+    _target_: torch.optim.lr_scheduler.ConstantLR
+    _partial_: true
+    total_iters: 1
+    factor: 1
+  scheduler_lightning_kwargs:
+    monitor: "val_loss"
+    interval: "step"
+    frequency: 1
+  model_type: VQVAETransformer
+  model_kwargs:
+    old_transformer_implementation: false
+    in_out_proj_cfg: null
+    latent_proj_cfg: null
+    input_features_dict: ${feature_dict}
+    causal_decoder: true
+    conditional_dim: 0
+    hidden_dim: 128
+    latent_dim: 8
+    num_blocks: 4
+    num_heads: 8
+    alpha: 10
+    max_sequence_len: 4
+    transformer_cfg:
+      attn_cfg:
+        num_heads: ${model.model_kwargs.num_heads}
+        dropout_rate: 0.0
+        norm_before: true
+        norm_after: false
+      mlp_cfg:
+        expansion_factor: 4
+        dropout_rate: 0.0
+        norm_before: true
+        activation: GELU
+      residual_cfg:
+        gate_type: local
+        init_value: 1.0
+    vq_kwargs:
+      num_codes: 8192
+      beta: 0.9
+      kmeans_init: false
+      norm: null
+      cb_norm: null
+      affine_lr: 2
+      sync_nu: 1
+      replace_freq: 500
+
+task_name: "l1t_tokenization"
+
+logger:
+  wandb:
+    project: ${project_name}
+    tags: ${tags}
+    name: ${task_name}
+  comet:
+    experiment_name: null
+    project_name: ${project_name}

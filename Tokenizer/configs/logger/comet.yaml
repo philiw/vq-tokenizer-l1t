@@ -1,0 +1,9 @@
+# https://www.comet.com
+
+comet:
+  _target_: lightning.pytorch.loggers.comet.CometLogger
+  api_key: ${oc.env:COMET_API_TOKEN}
+  project_name: "deep-learning"
+  online: true
+  experiment_key: null  # set to resume a specific existing experiment
+  prefix: ""

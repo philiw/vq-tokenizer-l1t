@@ -1,0 +1,124 @@
+==============================================================================
+ VQ-VAE L1T TOKENIZER — QUICK REFERENCE
+==============================================================================
+
+WHAT IT DOES
+------------
+Trains a VQ-VAE (Vector-Quantized Variational Autoencoder) on CMS L1T scouting
+data. Each event is a variable-length sequence of AK8 jets (pt, eta, phi).
+The model learns to compress jets into discrete integer token IDs drawn from a
+learned codebook, enabling efficient downstream anomaly detection.
+
+
+HOW TO RUN TRAINING
+-------------------
+  cd Tokenizer/
+  python gabbro/train.py experiment=l1t_tokenization
+
+Override any parameter on the fly without editing files:
+  python gabbro/train.py experiment=l1t_tokenization \
+      model.model_kwargs.num_codes=4096 \
+      model.model_kwargs.hidden_dim=64 \
+      trainer.max_steps=100000
+
+Resume from checkpoint:
+  python gabbro/train.py experiment=l1t_tokenization \
+      continue_from_checkpoint=/path/to/last.ckpt
+
+Evaluate a saved checkpoint (no training):
+  python gabbro/train.py experiment=l1t_tokenization \
+      ckpt_path_for_evaluation=/path/to/best.ckpt \
+      train=false test=true
+
+
+DATA PREPROCESSING (one-time, already done)
+-------------------------------------------
+The raw parquet files contain ~99% empty events (no jets). Run once to
+pre-filter them before training:
+
+  cd Tokenizer/
+  python scripts/filter_l1t_parquet.py
+
+Output: data/filtered/*.parquet  (41 MB total vs ~123 MB raw)
+
+Raw -> filtered event counts:
+  minbias:  105,000,000 -> 1,264 events
+  QCD:      101,181,400 -> 3,019,612 events
+  ggHbb:     10,493,169 ->   686,871 events
+  VBFHbb:    10,391,302 -> 1,077,601 events
+
+Jet multiplicity in data (after filtering, all events have >=1 jet):
+  minbias: max 2 jets/event
+  QCD:     max 6 jets/event  (99%+ have <=3)
+  ggHbb:   max 6 jets/event  (99%+ have <=3)
+  VBFHbb:  max 7 jets/event  (99%+ have <=3)
+  => pad_length=4 covers >99.9% of all events
+
+
+CONFIG FILES — WHAT TO TOUCH FOR WHAT
+--------------------------------------
+
+configs/experiment/l1t_tokenization.yaml   <-- START HERE, main experiment file
+  - pad_length / max_sequence_len          sequence length (currently 4)
+  - trainer.max_steps                      total training steps
+  - trainer.limit_train_batches            batches per epoch
+  - model.model_kwargs.hidden_dim          transformer width (currently 128)
+  - model.model_kwargs.latent_dim          VQ embedding size (currently 8)
+  - model.model_kwargs.num_blocks          transformer depth (currently 4)
+  - model.model_kwargs.num_heads           attention heads (currently 8)
+  - model.model_kwargs.num_codes           codebook size (currently 8192)
+  - model.model_kwargs.alpha               VQ loss weight (currently 10)
+  - model.optimizer.lr                     learning rate (currently 0.001)
+
+configs/data/iter_dataset_l1t_parquet.yaml  <-- data sources & loading
+  - data_dir / filtered_data_dir           paths to parquet files
+  - batch_size                             batch size
+  - pad_length                             max jets per event (set in experiment)
+  - n_jets_per_file                        max jets loaded per file per iteration
+  - files_dict (train/val/test)            which datasets go into which split
+
+configs/feature_dict/feature_dict_l1t_jets.yaml  <-- feature preprocessing
+  - part_pt:  log(pt) - 5.0   (clip input at 1.0 GeV)
+  - part_eta: eta * 0.5
+  - part_phi: phi * 0.3
+  Change multiply_by / subtract_by / func to rescale inputs differently.
+
+configs/trainer/gpu.yaml                    <-- hardware
+  - devices: 1                             number of GPUs
+  - accelerator: gpu                       change to "cpu" if no GPU
+
+configs/logger/                            <-- experiment tracking (optional)
+  wandb.yaml, comet.yaml, csv.yaml
+  Set WANDB_API_KEY or COMET_API_KEY env vars to enable cloud logging.
+
+
+IMPORTANT: pad_length appears in TWO places and must match:
+  configs/experiment/l1t_tokenization.yaml  -> data.dataset_kwargs_common.pad_length
+  configs/experiment/l1t_tokenization.yaml  -> model.model_kwargs.max_sequence_len
+Both are currently set to 4.
+
+
+KEY SOURCE FILES
+----------------
+gabbro/train.py                       entry point (do not modify normally)
+gabbro/models/vqvae.py                VQVAETransformer + VQVAELightning
+  - VQVAETransformer.forward()        encoder -> VQ -> decoder
+  - VQVAELightning.model_step()       loss = reconstruction + alpha * vq_loss
+  - VQVAELightning.tokenize_ak_array() convert raw features -> token IDs
+gabbro/models/transformer.py         NormformerBlock (attention + MLP)
+gabbro/data/iterable_dataset_jetclass.py  streaming data loader
+gabbro/data/loading.py               read_l1t_parquet_file() (parquet reader)
+gabbro/utils/arrays.py               ak_pad(), ak_select_and_preprocess()
+scripts/filter_l1t_parquet.py        one-time parquet filtering (see above)
+scripts/create_tokenized_jetclass_files.py  post-training: convert data to tokens
+
+
+OUTPUT
+------
+Logs and checkpoints are saved to:
+  Tokenizer/logs/<project_name>/<run_name>/
+    checkpoints/last.ckpt
+    checkpoints/best.ckpt
+    config.yaml           (full resolved config for reproducibility)
+
+==============================================================================

@@ -1,0 +1,38 @@
+documentclass[fleqn,10pt]{olplainarticle}
+% Use option lineno for line numbers 
+
+title{Tokenization for Real-Time Particle Data Compression}
+
+author[1]{Philipp Wagner}
+author[1]{Younes Elberkennou}
+author[1]{Philip Ploner}
+author[1]{Donatella Genovese}
+author[1]{Thea Klaeboe Aarrestad}
+author[1]{Siddharta Mishra}
+affil[1]{ETH Zurich}
+author[2]{Gregor Kasciezka}
+author[2]{Anna Hallin}
+affil[2]{University of Hamburg}
+
+keywords{VQ-VAE, Tokenization, FPGA, CMS L1 Trigger, Data Compression}
+
+begin{abstract}
+The increasing instantaneous luminosity at the Large Hadron Collider poses stringent constraints on real-time data processing within the CMS Level-1 (L1) trigger system. In particular, the L1 data scouting program aims to retain high-rate, low-level detector information under severe bandwidth and latency constraints. In this work, we study a vector-quantized variational autoencoder (VQ-VAE) framework~cite{birk2024particletokens} and  classical shape-gain quantization and proper orthogonal decomposition~cite{lingsch2026phaedra} for learned tokenization of particle-level information, enabling structured compression directly deployable on FPGA hardware. By discretizing continuous detector features into a finite codebook of learned tokens, the model transforms high-dimensional particle representations into compact symbolic sequences that are amenable to efficient transmission and storage. Unlike traditional hand-engineered compression schemes, the VQ-VAE learns task-relevant latent structure from data while maintaining deterministic and hardware-friendly operations. We investigate quantization-aware training, fixed-point arithmetic constraints, and codebook utilization strategies to ensure compatibility with CMS L1 latency requirements. Our approach aims to preserve essential kinematic and topological information while significantly reducing bandwidth, providing a scalable path toward intelligent, physics-aware compression in next-generation trigger systems.
+end{abstract}
+
+begin{document}
+
+flushbottom
+maketitle
+thispagestyle{empty}
+
+section{Introduction}
+The CMS Level-1 trigger must process collision events at the full LHC bunch-crossing rate, selecting potentially interesting events within strict latency budgets and limited output bandwidth. As luminosity increases, retaining detailed particle-flow information for data scouting becomes increasingly challenging. Conventional compression strategies rely on fixed-precision truncation or handcrafted feature selection, which may discard subtle but physically relevant correlations.
+
+Vector-Quantized Variational Autoencoders (VQ-VAEs) provide a principled alternative by learning a discrete latent representation of the data. Instead of encoding particle features into a continuous latent space, a VQ-VAE maps them to entries in a finite codebook. Each codebook vector can be interpreted as a learned prototype of particle or interaction patterns. This discrete tokenization naturally supports compact representations and aligns well with FPGA implementations due to its reliance on nearest-neighbor lookup and table-based operations.
+
+In this work, we explore the feasibility of deploying a VQ-VAE-based tokenizer within the CMS L1 data scouting pipeline. We focus on (i) designing lightweight encoder and decoder architectures compatible with FPGA resource constraints; (ii) implementing quantization-aware training to account for fixed-point arithmetic; and (iii) evaluating compression–fidelity trade-offs in terms of physics performance metrics. By converting particle-level information into compact learned tokens, we aim to enable efficient streaming, buffering, and potential downstream anomaly detection, while respecting the strict latency and determinism requirements of real-time trigger hardware.
+
+bibliography{references}
+
+end{document}

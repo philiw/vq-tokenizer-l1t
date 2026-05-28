@@ -1,0 +1,6 @@
+# @package _global_
+# Machine-local overrides (not tracked in version control).
+# Overrides paths.log_dir so LOG_DIR env var is not needed.
+
+paths:
+  log_dir: C:/Users/phili/Desktop/Studium/8. Semester/Semesterarbeit/Tokenizer/logs

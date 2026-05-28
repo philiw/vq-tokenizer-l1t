@@ -1,0 +1,57 @@
+15:49:47  Using device: cuda
+15:49:47  Loading data...
+15:49:47    Loading l1t_minbias...
+15:49:47  NumExpr defaulting to 16 threads.
+15:49:47  You are clipping the values of the feature 'part_pt' in input space with clip_min_input_space = 1.0 and clip_max_input_space = None. Make sure this is intended. THIS IS NOT INVERTIBLE.
+15:49:47      → 884 train / 189 val / 191 test  (total loaded: 1264)
+15:49:47    Loading l1t_qcd...
+15:49:48  You are clipping the values of the feature 'part_pt' in input space with clip_min_input_space = 1.0 and clip_max_input_space = None. Make sure this is intended. THIS IS NOT INVERTIBLE.
+15:49:48      → 5600 train / 1200 val / 1200 test  (total loaded: 8000)
+15:49:48    Loading l1t_ggHbb...
+15:49:48  You are clipping the values of the feature 'part_pt' in input space with clip_min_input_space = 1.0 and clip_max_input_space = None. Make sure this is intended. THIS IS NOT INVERTIBLE.
+15:49:48      → 5600 train / 1200 val / 1200 test  (total loaded: 8000)
+15:49:48    Loading l1t_VBFHbb...
+15:49:48  You are clipping the values of the feature 'part_pt' in input space with clip_min_input_space = 1.0 and clip_max_input_space = None. Make sure this is intended. THIS IS NOT INVERTIBLE.
+15:49:48      → 5600 train / 1200 val / 1200 test  (total loaded: 8000)
+15:49:48    Class counts: [1264, 8000, 8000, 8000]  →  weights: [4.996835231781006, 0.7894999980926514, 0.7894999980926514, 0.7894999980926514]
+15:49:48  Train: 17684  Val: 3789  Test: 3791
+15:49:48  
+=== Training classifiers on original features (upper bound) ===
+15:49:58    Original MLP accuracy:         0.3756
+15:50:21    Original Transformer accuracy: 0.3609
+15:50:21  
+=== Codebook 512: encoding data... ===
+15:50:22    Encoded 25264 events.
+15:50:36    MLP bag-of-tokens accuracy:  0.3514
+15:51:00    Transformer accuracy:         0.3638
+15:51:00  
+=== Codebook 1024: encoding data... ===
+15:51:00    Encoded 25264 events.
+15:51:13    MLP bag-of-tokens accuracy:  0.3582
+15:51:38    Transformer accuracy:         0.3500
+15:51:38  
+=== Codebook 2048: encoding data... ===
+15:51:38    Encoded 25264 events.
+15:51:50    MLP bag-of-tokens accuracy:  0.3674
+15:52:14    Transformer accuracy:         0.3548
+15:52:14  
+=== Codebook 4096: encoding data... ===
+15:52:14    Encoded 25264 events.
+15:52:26    MLP bag-of-tokens accuracy:  0.3479
+15:52:50    Transformer accuracy:         0.3543
+15:52:50  
+=== Codebook 8192: encoding data... ===
+15:52:50    Encoded 25264 events.
+15:53:02    MLP bag-of-tokens accuracy:  0.3395
+15:53:26    Transformer accuracy:         0.3458
+15:53:26  
+Plot saved to C:\Users\phili\Desktop\Studium\8. Semester\Semesterarbeit\experiment_plots\token_quality_classifier_accuracy.pdf
+15:53:26  
+=== Summary ===
+15:53:26    Codebook       MLP   Transformer
+15:53:26         512    0.3514        0.3638
+15:53:26        1024    0.3582        0.3500
+15:53:26        2048    0.3674        0.3548
+15:53:26        4096    0.3479        0.3543
+15:53:26        8192    0.3395        0.3458
+15:53:26    Original    0.3756        0.3609

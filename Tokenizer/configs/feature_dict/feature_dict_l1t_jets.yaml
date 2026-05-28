@@ -1,0 +1,3 @@
+part_pt: {multiply_by: 1, subtract_by: 5.0, func: "np.log", inv_func: "np.exp", clip_min_input_space: 1.0}
+part_eta: {multiply_by: 0.5}
+part_phi: {multiply_by: 0.3}
