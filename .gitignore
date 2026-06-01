@@ -29,3 +29,6 @@ multirun/
 # OS
 .DS_Store
 Thumbs.db
+
+# Paper
+Vector_Quantized_Tokenization_for_Real_Time_Particle_Data_Compression.*
