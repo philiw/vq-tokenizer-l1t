@@ -55,6 +55,21 @@ pylogger = get_pylogger("TokenizationEvalCallback")
 vector.register_awkward()
 
 
+def _reconstruct_phi_from_cos_sin(ak_arr):
+    """Replace part_phi_cos/part_phi_sin fields with part_phi = atan2(sin, cos)."""
+    if "part_phi_cos" not in ak_arr.fields or "part_phi_sin" not in ak_arr.fields:
+        return ak_arr
+    counts = ak.num(ak_arr.part_phi_cos)
+    phi = np.arctan2(
+        ak.to_numpy(ak.flatten(ak_arr.part_phi_sin)),
+        ak.to_numpy(ak.flatten(ak_arr.part_phi_cos)),
+    )
+    phi_ak = ak.unflatten(phi, counts)
+    new_fields = {f: ak_arr[f] for f in ak_arr.fields if f not in ("part_phi_cos", "part_phi_sin")}
+    new_fields["part_phi"] = phi_ak
+    return ak.Array(new_fields)
+
+
 class TokenizationEvalCallback(L.Callback):
     def __init__(
         self,
@@ -172,6 +187,10 @@ class TokenizationEvalCallback(L.Callback):
         x_original_ak_pp = np_to_ak(x_originals, mask=masks, names=pp_dict.keys())
         x_reco_ak = ak_select_and_preprocess(x_reco_ak_pp, pp_dict=pp_dict, inverse=True)
         x_original_ak = ak_select_and_preprocess(x_original_ak_pp, pp_dict=pp_dict, inverse=True)
+
+        # Reconstruct part_phi from cos/sin encoding if present
+        x_reco_ak = _reconstruct_phi_from_cos_sin(x_reco_ak)
+        x_original_ak = _reconstruct_phi_from_cos_sin(x_original_ak)
 
         eta_var = None
         phi_var = None

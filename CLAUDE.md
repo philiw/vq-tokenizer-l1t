@@ -30,20 +30,21 @@ Defined in `Tokenizer/configs/feature_dict/feature_dict_l1t_jets.yaml`, applied 
 |---|---|
 | `part_pt` | clip ≥ 1 GeV → `log(pT)` → subtract 5.0 |
 | `part_eta` | multiply by 0.5 |
-| `part_phi` | multiply by 0.3 |
+| `part_phi_cos` | `cos(phi)` — no scaling, already ∈ [−1, 1] |
+| `part_phi_sin` | `sin(phi)` — no scaling, already ∈ [−1, 1] |
 
-All transforms are invertible. Events are padded to **7 jets** (max at L1T level); padding is tracked via a boolean mask applied during attention. Data loading: `Tokenizer/gabbro/data/iterable_dataset_jetclass.py`.
+All transforms are invertible. `phi` is recovered via `atan2(sin, cos)` in the callback. Events are padded to **7 jets** (max at L1T level); padding is tracked via a boolean mask applied during attention. Data loading: `Tokenizer/gabbro/data/iterable_dataset_jetclass.py`.
 
 ## Model Architecture: VQVAETransformer
 
-Implemented in `Tokenizer/gabbro/models/vqvae.py`. Input shape: `(batch, seq_len=7, n_features=3)` — each event is a sequence of 7 jet tokens, each with 3 features.
+Implemented in `Tokenizer/gabbro/models/vqvae.py`. Input shape: `(batch, seq_len=7, n_features=4)` — each event is a sequence of 7 jet tokens, each with 4 features (pt, eta, cos_phi, sin_phi).
 
 ```
-Input: (batch, 7 jets, 3 features)   ← one event = sequence of 7 jet tokens
+Input: (batch, 7 jets, 4 features)   ← one event = sequence of 7 jet tokens
                     │
           [applied per jet token]
                     │
-  → Linear projection:  3 → 128        (per-jet, shared weights)
+  → Linear projection:  4 → 128        (per-jet, shared weights)
   → Transformer Encoder: 4 blocks, 8 heads, pre-norm, GELU, MLP expansion=4
   │                                     (attention across all 7 jets)
   → Linear: 128 → 8                    (per-jet, compress to latent)
@@ -54,12 +55,12 @@ Input: (batch, 7 jets, 3 features)   ← one event = sequence of 7 jet tokens
   → Linear: 8 → 128                   (per-jet, expand from latent)
   → Transformer Decoder: 4 blocks, causal masking
   │                                     (attention across all 7 jets)
-  → Linear: 128 → 3                   (per-jet, reconstruct features)
+  → Linear: 128 → 4                   (per-jet, reconstruct features)
                     │
 Output: (batch, 7 jets, 3 features)
 ```
 
-**Compression:** Each jet is mapped to one codebook index (13 bits). One event: 7 jets × 3 floats = 21 floats → 7 integers.
+**Compression:** Each jet is mapped to one codebook index (13 bits). One event: 7 jets × 4 floats = 28 floats → 7 integers.
 
 ## Training
 

@@ -175,7 +175,7 @@ def read_l1t_parquet_file(
     filepath : str
         Path to the parquet file.
     particle_features : list of str, optional
-        Features to select from the output. Expected fields are part_pt, part_eta, part_phi.
+        Features to select from the output. Available fields: part_pt, part_eta, part_phi, part_phi_cos, part_phi_sin.
     jet_features : list of str, optional
         Unused (kept for signature compatibility). Always returns None.
     labels : list of str, optional
@@ -190,7 +190,7 @@ def read_l1t_parquet_file(
     Returns
     -------
     x_events : ak.Array
-        Awkward array of shape (n_events, var_jets) with fields part_pt, part_eta, part_phi.
+        Awkward array of shape (n_events, var_jets) with fields part_pt, part_eta, part_phi, part_phi_cos, part_phi_sin.
     None
         Placeholder for jet-level features (not applicable here).
     ak_labels : ak.Array
@@ -237,7 +237,16 @@ def read_l1t_parquet_file(
     eta = ak.values_astype(table["L1T_JetPuppiAK8_Eta"], "float32")
     phi = ak.values_astype(table["L1T_JetPuppiAK8_Phi"], "float32")
 
-    x_events = ak.Array({"part_pt": pt, "part_eta": eta, "part_phi": phi})
+    phi_cos = ak.values_astype(np.cos(phi), "float32")
+    phi_sin = ak.values_astype(np.sin(phi), "float32")
+
+    x_events = ak.Array({
+        "part_pt": pt,
+        "part_eta": eta,
+        "part_phi": phi,
+        "part_phi_cos": phi_cos,
+        "part_phi_sin": phi_sin,
+    })
 
     if particle_features is not None:
         x_events = x_events[particle_features]
