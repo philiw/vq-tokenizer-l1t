@@ -1,0 +1,59 @@
+_target_: gabbro.data.iterable_dataset_jetclass.IterableDatamodule
+
+defaults:
+  - defaults.yaml
+
+data_dir: C:/Users/phili/Desktop/Studium/8. Semester/Semesterarbeit/data
+filtered_data_dir: ${data.data_dir}/filtered
+
+batch_size: 512
+
+dataset_kwargs_common:
+  dataset_type: l1t
+  pad_length: 7
+  shuffle_particles: false
+  labels_to_load:
+    - label_l1t
+
+dataset_kwargs_train:
+  n_files_at_once: 4
+  n_jets_per_file: 100000
+  files_dict:
+    l1t_minbias:
+      - ${data.filtered_data_dir}/minbias_kinematics.parquet
+    l1t_qcd:
+      - ${data.filtered_data_dir}/QCD_HT50toInf_kinematics.parquet
+    l1t_ggHbb:
+      - ${data.filtered_data_dir}/ggHbb_kinematics.parquet
+    l1t_VBFHbb:
+      - ${data.filtered_data_dir}/VBFHbb_kinematics.parquet
+
+dataset_kwargs_val:
+  n_files_at_once: 4
+  n_jets_per_file: 20000
+  load_only_once: true
+  shuffle_only_once: true
+  files_dict:
+    l1t_minbias:
+      - ${data.filtered_data_dir}/minbias_kinematics.parquet
+    l1t_qcd:
+      - ${data.filtered_data_dir}/QCD_HT50toInf_kinematics.parquet
+    l1t_ggHbb:
+      - ${data.filtered_data_dir}/ggHbb_kinematics.parquet
+    l1t_VBFHbb:
+      - ${data.filtered_data_dir}/VBFHbb_kinematics.parquet
+
+dataset_kwargs_test:
+  n_files_at_once: 4
+  n_jets_per_file: 20000
+  load_only_once: true
+  shuffle_only_once: true
+  files_dict:
+    l1t_minbias:
+      - ${data.filtered_data_dir}/minbias_kinematics.parquet
+    l1t_qcd:
+      - ${data.filtered_data_dir}/QCD_HT50toInf_kinematics.parquet
+    l1t_ggHbb:
+      - ${data.filtered_data_dir}/ggHbb_kinematics.parquet
+    l1t_VBFHbb:
+      - ${data.filtered_data_dir}/VBFHbb_kinematics.parquet

@@ -1,5 +1,4 @@
-# Data
-data/
+# External datasets
 datasets_Hamburg/
 
 # Training logs & checkpoints
