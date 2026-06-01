@@ -68,7 +68,7 @@ Output: (batch, 7 jets, 3 features)
 - **Batch size:** 512 (train), 1000 (val/test)
 - **Max steps:** 20,000; validation every 1,000 steps (20 checks total); early stopping patience=10 checks (i.e. stops if no improvement for 10,000 steps)
 - **Checkpointing:** every 1,000 steps; best checkpoint kept by `val_loss`
-- **Train/val/test split:** no separate files — all three splits draw from the same 4 parquet files (one file per jet class: minbias, QCD, ggHbb, VBFHbb). All 4 files are loaded simultaneously and concatenated per split (400k jets for train, 80k for val/test). Both splits take the *first* N jets from each file with no offset, so the 20k val jets per class are a strict subset of the 100k training jets — **train and val overlap**.
+- **Train/val/test split:** fraction-based, disjoint slices from the same 4 parquet files (minbias, QCD, ggHbb, VBFHbb). After filtering to events with ≥1 jet, each file is split 80/10/10: train rows 0–80%, val rows 80–90%, test rows 90–100%. All events in each slice are used. Approximate sizes: train ~3.83M, val ~478k, test ~478k (dominated by QCD). Class imbalance is intentional and not corrected. Batching controls RAM, not an event cap. Config: `Tokenizer/configs/data/iter_dataset_l1t_parquet.yaml` (`start_fraction`/`end_fraction` per split block).
 
 ## Evaluation & Metrics
 

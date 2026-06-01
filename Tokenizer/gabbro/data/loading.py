@@ -160,6 +160,8 @@ def read_l1t_parquet_file(
     n_load: int = None,
     shuffle_particles: bool = False,
     random_seed: int = None,
+    start_fraction: float = 0.0,
+    end_fraction: float = 1.0,
 ):
     """Reads a single CMS L1T scouting parquet file.
 
@@ -210,6 +212,12 @@ def read_l1t_parquet_file(
     # Filter to events that have at least one jet
     n_jets_per_event = ak.num(table["L1T_JetPuppiAK8_PT"])
     table = table[n_jets_per_event >= 1]
+
+    # Fraction-based split to create disjoint train/val/test ranges
+    n_total = len(table)
+    start_idx = int(n_total * start_fraction)
+    end_idx = int(n_total * end_fraction)
+    table = table[start_idx:end_idx]
 
     if n_load is not None and len(table) > n_load:
         table = table[:n_load]

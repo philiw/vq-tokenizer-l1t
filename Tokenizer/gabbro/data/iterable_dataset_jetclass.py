@@ -57,6 +57,8 @@ class CustomIterableDataset(IterableDataset):
         dataset_type: str = "jetclass",
         shuffle_particles: bool = False,
         verbose: bool = False,
+        start_fraction: float = 0.0,
+        end_fraction: float = 1.0,
         **kwargs,
     ):
         """
@@ -211,6 +213,8 @@ class CustomIterableDataset(IterableDataset):
                 "This is not supported atm (in the shuffling etc). "
                 "Please set collate to False."
             )
+        self.start_fraction = start_fraction
+        self.end_fraction = end_fraction
         self.dataset_type = dataset_type
         valid_dataset_types = ["jetclass", "aoj", "l1t"]
         if self.dataset_type not in valid_dataset_types:
@@ -585,6 +589,8 @@ class CustomIterableDataset(IterableDataset):
                             labels=self.labels_to_load,
                             n_load=self.n_jets_per_file,
                             random_seed=self.random_seed_for_per_file_shuffling,
+                            start_fraction=self.start_fraction,
+                            end_fraction=self.end_fraction,
                         )
                     else:
                         # read the data from the file (just normal JetClass file, not tokenization involved)

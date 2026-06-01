@@ -1,6 +1,6 @@
 # @package _global_
 
-# Train VQ-VAE tokenizer on local JetClass data for CMS L1T application.
+# Train VQ-VAE tokenizer on local L1T data
 # Uses kinematic-only features (pt, etarel, phirel) with no PID flags.
 #
 # To run:
@@ -19,9 +19,9 @@ load_weights_strict: false
 continue_from_checkpoint: null
 
 project_name: "l1t_tokenization"
-tags: ["vqvae", "l1t", "jetclass_kin"]
+tags: ["vqvae", "l1t", "l1t_kin"]
 
-run_note: "VQ-VAE tokenizer trained on JetClass kinematics for CMS L1T phase space coverage"
+run_note: "VQ-VAE tokenizer trained on L1T kinematics for CMS L1T phase space coverage"
 
 seed: 42
 
@@ -44,8 +44,8 @@ trainer:
   num_nodes: 1
   val_check_interval: 1000  # run validation every 1000 steps
   check_val_every_n_epoch: null
-  limit_train_batches: 3906  # 2 files * 10 * 100000 events / 512 batch_size
-  limit_val_batches: 20
+  limit_train_batches: 1000 
+  limit_val_batches: null  # use all val events (~478k, ~478 batches at batch_size=1000)
 
 model:
   model_kwargs_loaded: null

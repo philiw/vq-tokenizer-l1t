@@ -17,7 +17,9 @@ dataset_kwargs_common:
 
 dataset_kwargs_train:
   n_files_at_once: 4
-  n_jets_per_file: 100000
+  n_jets_per_file: null  # no cap — use all events in the 80% train fraction
+  start_fraction: 0.0
+  end_fraction: 0.8
   files_dict:
     l1t_minbias:
       - ${data.filtered_data_dir}/minbias_kinematics.parquet
@@ -30,7 +32,9 @@ dataset_kwargs_train:
 
 dataset_kwargs_val:
   n_files_at_once: 4
-  n_jets_per_file: 20000
+  n_jets_per_file: null  # no cap — use all events in the 10% val slice
+  start_fraction: 0.8
+  end_fraction: 0.9
   load_only_once: true
   shuffle_only_once: true
   files_dict:
@@ -45,7 +49,9 @@ dataset_kwargs_val:
 
 dataset_kwargs_test:
   n_files_at_once: 4
-  n_jets_per_file: 20000
+  n_jets_per_file: null  # no cap — use all events in the 10% test slice
+  start_fraction: 0.9
+  end_fraction: 1.0
   load_only_once: true
   shuffle_only_once: true
   files_dict:
