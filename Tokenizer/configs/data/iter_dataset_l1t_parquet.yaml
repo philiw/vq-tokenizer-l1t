@@ -1,4 +1,4 @@
-_target_: gabbro.data.iterable_dataset_jetclass.IterableDatamodule
+_target_: gabbro.data.iterable_dataset.IterableDatamodule
 
 defaults:
   - defaults.yaml

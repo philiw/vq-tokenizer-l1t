@@ -10,7 +10,7 @@ import numpy as np
 import vector
 
 import gabbro.plotting.utils as plot_utils
-from gabbro.data.iterable_dataset_jetclass import CustomIterableDataset
+from gabbro.data.iterable_dataset import CustomIterableDataset
 from gabbro.metrics.jet_substructure import JetSubstructure
 from gabbro.plotting.feature_plotting import plot_features
 from gabbro.utils.arrays import (

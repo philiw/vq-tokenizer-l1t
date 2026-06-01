@@ -162,6 +162,7 @@ def read_l1t_parquet_file(
     random_seed: int = None,
     start_fraction: float = 0.0,
     end_fraction: float = 1.0,
+    pre_split_seed: int = 42,
 ):
     """Reads a single CMS L1T scouting parquet file.
 
@@ -212,6 +213,11 @@ def read_l1t_parquet_file(
     # Filter to events that have at least one jet
     n_jets_per_event = ak.num(table["L1T_JetPuppiAK8_PT"])
     table = table[n_jets_per_event >= 1]
+
+    # Shuffle with a fixed seed before splitting so all splits draw from the
+    # same distribution regardless of any ordering in the parquet file
+    pre_split_rng = np.random.default_rng(pre_split_seed)
+    table = table[pre_split_rng.permutation(len(table))]
 
     # Fraction-based split to create disjoint train/val/test ranges
     n_total = len(table)

@@ -591,6 +591,7 @@ class CustomIterableDataset(IterableDataset):
                             random_seed=self.random_seed_for_per_file_shuffling,
                             start_fraction=self.start_fraction,
                             end_fraction=self.end_fraction,
+                            pre_split_seed=self.seed,
                         )
                     else:
                         # read the data from the file (just normal JetClass file, not tokenization involved)
