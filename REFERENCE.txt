@@ -80,7 +80,8 @@ configs/data/iter_dataset_l1t_parquet.yaml  <-- data sources & loading
 configs/feature_dict/feature_dict_l1t_jets.yaml  <-- feature preprocessing
   - part_pt:  log(pt) - 5.0   (clip input at 1.0 GeV)
   - part_eta: eta * 0.5
-  - part_phi: phi * 0.3
+  - part_phi_cos: cos(phi)
+  - part_hi_sin: sin(phi)
   Change multiply_by / subtract_by / func to rescale inputs differently.
 
 configs/trainer/gpu.yaml                    <-- hardware
