@@ -73,15 +73,20 @@ Output: (batch, 7 jets, 3 features)
 
 ## Evaluation & Metrics
 
-Implemented in `Tokenizer/gabbro/callbacks/tokenization_callback.py`, triggered after every validation epoch. Plots are saved per jet class (minbias, QCD, ggHbb, VBFHbb).
+Implemented in `Tokenizer/gabbro/callbacks/tokenization_callback.py` (plots in `Tokenizer/gabbro/plotting/jet_reconstruction.py`), triggered after every validation epoch and after the test loop. Plots are saved per jet class (minbias, QCD, ggHbb, VBFHbb).
 
-**Plots actually produced:**
-- **Individual jet kinematics** (most relevant): pt/η/φ distributions of original vs reconstructed AK8 jets, plus residuals (reco − original) per jet class
-- **Event-level hadronic activity**: vector sum of all AK8 jets per event (proxy for HT/MHT), pt/η/φ/mass original vs reco and residuals per jet class
+**Plots produced (individual AK8 jets only):**
+- `*_jet_kinematics_<class>.png`: pt/η/φ of the individual AK8 jets, original vs reconstructed
+- `*_jet_residuals_<class>.png`: residuals (reco − original) of pt, η and φ per jet (Δφ wrapped to [−π, π))
+- `*_per_jet_metrics.json`: mean, std, median and 68% half-width of the residuals per class
 
-**Codebook utilization:** fraction of the 8,192 codes actually used, logged as a scalar metric.
+The jets of an event are **not** combined: there is no vector sum / super-jet and no mass. (The earlier "event hadronic activity" plots were the vector sum of all AK8 jets of an event with massless jets. They were removed because they only probe correlations between jets and carry little physics for this dataset.) Values outside the plotted range are collected in the first/last bin (under-/overflow), and their fraction is stored in `*_per_jet_metrics.json` (there is no text on the plots). The pT axis is 150–800 GeV, the φ range is exactly [−π, π].
 
-**Jet substructure (`jet_substructure.py`) — not meaningful for this dataset:** the callback calls `JetSubstructure`, which treats the AK8 jets within one event as "particles" and clusters them into a super-jet (kt, R=0.8) to compute τ₂₁, τ₃₂, D2. This requires ≥3 AK8 jets per event, which is rare in the L1T data (minbias has only 1,344 jets total). Results are logged as scalar mean errors to CometML but not saved as plots. This code is inherited from the JetClass setup and is effectively dead weight for L1T — can be removed.
+**Codebook utilization:** fraction of the codes actually used, logged as a scalar metric and written to `*_codebook_utilization.json`. Padded positions are quantized as well, so both the number over all positions and the number over real jets only are reported.
+
+**Jet substructure:** removed from the callback. `jet_substructure.py` clustered the AK8 jets of an event into a super-jet (kt, R=0.8) to compute τ₂₁, τ₃₂, D2, which requires ≥3 AK8 jets per event and is not meaningful for L1T. The module is no longer used.
+
+**Re-creating the plots of an existing run** without Hydra or comet_ml: `scripts/evaluate_checkpoint_per_jet.py` (see its docstring). `--subset original_test` reproduces the test definition of the April codebook-sweep runs (first 20,000 events per file, which were part of the training data). `--subset held_out` uses events that those runs never trained on.
 
 ## Setup
 
