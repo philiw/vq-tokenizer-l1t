@@ -1,0 +1,286 @@
+task_name: l1t_tokenization
+tags:
+- vqvae
+- l1t
+- jetclass_kin
+train: true
+test: true
+test_only_on_rank_zero: true
+ckpt_path: null
+seed: 42
+ckpt_path_for_evaluation: null
+output_dir_resub: null
+dataset_size_id: null
+data:
+  dataset_kwargs_train:
+    logger_name: IterDataset-Train
+    shuffle_files: true
+    shuffle_data: true
+    seed: 42
+    n_files_at_once: 4
+    n_jets_per_file: 100000
+    files_dict:
+      l1t_minbias:
+      - C:/Users/phili/Desktop/Studium/8. Semester/Semesterarbeit/data/filtered/minbias_kinematics.parquet
+      l1t_qcd:
+      - C:/Users/phili/Desktop/Studium/8. Semester/Semesterarbeit/data/filtered/QCD_HT50toInf_kinematics.parquet
+      l1t_ggHbb:
+      - C:/Users/phili/Desktop/Studium/8. Semester/Semesterarbeit/data/filtered/ggHbb_kinematics.parquet
+      l1t_VBFHbb:
+      - C:/Users/phili/Desktop/Studium/8. Semester/Semesterarbeit/data/filtered/VBFHbb_kinematics.parquet
+  dataset_kwargs_val:
+    logger_name: IterDataset-Validation
+    shuffle_files: false
+    shuffle_data: true
+    seed_shuffle_data: 42
+    n_files_at_once: 4
+    n_jets_per_file: 20000
+    load_only_once: true
+    shuffle_only_once: true
+    files_dict:
+      l1t_minbias:
+      - C:/Users/phili/Desktop/Studium/8. Semester/Semesterarbeit/data/filtered/minbias_kinematics.parquet
+      l1t_qcd:
+      - C:/Users/phili/Desktop/Studium/8. Semester/Semesterarbeit/data/filtered/QCD_HT50toInf_kinematics.parquet
+      l1t_ggHbb:
+      - C:/Users/phili/Desktop/Studium/8. Semester/Semesterarbeit/data/filtered/ggHbb_kinematics.parquet
+      l1t_VBFHbb:
+      - C:/Users/phili/Desktop/Studium/8. Semester/Semesterarbeit/data/filtered/VBFHbb_kinematics.parquet
+  dataset_kwargs_test:
+    logger_name: IterDataset-Test
+    shuffle_files: false
+    shuffle_data: true
+    seed_shuffle_data: 42
+    n_files_at_once: 4
+    n_jets_per_file: 20000
+    load_only_once: true
+    shuffle_only_once: true
+    files_dict:
+      l1t_minbias:
+      - C:/Users/phili/Desktop/Studium/8. Semester/Semesterarbeit/data/filtered/minbias_kinematics.parquet
+      l1t_qcd:
+      - C:/Users/phili/Desktop/Studium/8. Semester/Semesterarbeit/data/filtered/QCD_HT50toInf_kinematics.parquet
+      l1t_ggHbb:
+      - C:/Users/phili/Desktop/Studium/8. Semester/Semesterarbeit/data/filtered/ggHbb_kinematics.parquet
+      l1t_VBFHbb:
+      - C:/Users/phili/Desktop/Studium/8. Semester/Semesterarbeit/data/filtered/VBFHbb_kinematics.parquet
+  batch_size:
+    train: 512
+    val: 1000
+    test: 1000
+  data_dir: C:/Users/phili/Desktop/Studium/8. Semester/Semesterarbeit/data
+  _target_: gabbro.data.iterable_dataset_jetclass.IterableDatamodule
+  filtered_data_dir: C:/Users/phili/Desktop/Studium/8. Semester/Semesterarbeit/data/filtered
+  dataset_kwargs_common:
+    dataset_type: l1t
+    pad_length: 7
+    shuffle_particles: false
+    labels_to_load:
+    - label_l1t
+    feature_dict:
+      part_pt:
+        multiply_by: 1
+        subtract_by: 5.0
+        func: np.log
+        inv_func: np.exp
+        clip_min_input_space: 1.0
+      part_eta:
+        multiply_by: 0.5
+      part_phi:
+        multiply_by: 0.3
+    feature_dict_jet: null
+model:
+  _target_: gabbro.models.vqvae.VQVAELightning
+  model_type: VQVAETransformer
+  model_kwargs:
+    hidden_dim: 128
+    latent_dim: 8
+    num_blocks: 4
+    num_heads: 8
+    alpha: 10
+    vq_kwargs:
+      num_codes: 4096
+      beta: 0.9
+      kmeans_init: false
+      norm: null
+      cb_norm: null
+      affine_lr: 2
+      sync_nu: 1
+      replace_freq: 500
+      dim: -1
+    old_transformer_implementation: false
+    in_out_proj_cfg: null
+    latent_proj_cfg: null
+    input_features_dict:
+      part_pt:
+        multiply_by: 1
+        subtract_by: 5.0
+        func: np.log
+        inv_func: np.exp
+        clip_min_input_space: 1.0
+      part_eta:
+        multiply_by: 0.5
+      part_phi:
+        multiply_by: 0.3
+    causal_decoder: true
+    conditional_dim: 0
+    max_sequence_len: 4
+    transformer_cfg:
+      attn_cfg:
+        num_heads: 8
+        dropout_rate: 0.0
+        norm_before: true
+        norm_after: false
+      mlp_cfg:
+        expansion_factor: 4
+        dropout_rate: 0.0
+        norm_before: true
+        activation: GELU
+      residual_cfg:
+        gate_type: local
+        init_value: 1.0
+  optimizer:
+    _target_: torch.optim.AdamW
+    _partial_: true
+    lr: 0.001
+    weight_decay: 0.01
+  scheduler:
+    _target_: torch.optim.lr_scheduler.ConstantLR
+    _partial_: true
+    total_iters: 1
+    factor: 1
+  model_kwargs_loaded: null
+  scheduler_lightning_kwargs:
+    monitor: val_loss
+    interval: step
+    frequency: 1
+callbacks:
+  model_checkpoint:
+    _target_: gabbro.callbacks.checkpoint_callback.CustomModelCheckpoint
+    state_key: General-checkpoint-callback
+    dirpath: C:/Users/phili/Desktop/Studium/8. Semester/Semesterarbeit/Tokenizer/logs/l1t_tokenization/runs/2026-04-20_00-26-17_HPVONPHILIPP_MountainousAbdominousness/checkpoints
+    filename: epoch_{epoch:03d}_step_{step}
+    monitor: val_loss
+    verbose: true
+    save_last: true
+    save_top_k: 5
+    mode: min
+    auto_insert_metric_name: false
+    save_weights_only: false
+    every_n_train_steps: 1000
+    train_time_interval: null
+    every_n_epochs: 0
+    save_on_train_epoch_end: false
+  model_checkpoint_best:
+    _target_: gabbro.callbacks.checkpoint_callback.CustomModelCheckpoint
+    state_key: Best-checkpoint-callback
+    dirpath: C:/Users/phili/Desktop/Studium/8. Semester/Semesterarbeit/Tokenizer/logs/l1t_tokenization/runs/2026-04-20_00-26-17_HPVONPHILIPP_MountainousAbdominousness/checkpoints
+    filename: best
+    monitor: val_loss
+    verbose: true
+    save_last: false
+    save_top_k: 1
+    mode: min
+    auto_insert_metric_name: false
+    save_weights_only: false
+    every_n_train_steps: 1000
+    train_time_interval: null
+    every_n_epochs: 0
+    save_on_train_epoch_end: false
+  model_summary:
+    _target_: lightning.pytorch.callbacks.RichModelSummary
+    max_depth: -1
+  lr_monitor:
+    _target_: lightning.pytorch.callbacks.LearningRateMonitor
+    logging_interval: step
+    log_momentum: false
+  early_stopping:
+    _target_: lightning.pytorch.callbacks.EarlyStopping
+    monitor: val_loss
+    min_delta: 0.0
+    patience: 10
+    verbose: true
+    mode: min
+    strict: false
+    check_finite: true
+    stopping_threshold: null
+    divergence_threshold: null
+    check_on_train_epoch_end: null
+  weight_monitoring:
+    _target_: gabbro.callbacks.model_monitoring.LogWeightNorm
+    depth: -1
+  weight_monitoring_global:
+    _target_: gabbro.callbacks.model_monitoring.LogWeightNorm
+    depth: 1
+  gradient_monitoring:
+    _target_: gabbro.callbacks.model_monitoring.LogGradNorm
+    depth: -1
+  gradient_monitoring_global:
+    _target_: gabbro.callbacks.model_monitoring.LogGradNorm
+    depth: 1
+  tokenization_callback:
+    _target_: gabbro.callbacks.tokenization_callback.TokenizationEvalCallback
+feature_dict:
+  part_pt:
+    multiply_by: 1
+    subtract_by: 5.0
+    func: np.log
+    inv_func: np.exp
+    clip_min_input_space: 1.0
+  part_eta:
+    multiply_by: 0.5
+  part_phi:
+    multiply_by: 0.3
+logger:
+  comet:
+    _target_: lightning.pytorch.loggers.comet.CometLogger
+    api_key: s0G6qTP8E4YpcrewlNfry98cY
+    project_name: l1t_tokenization
+    online: true
+    experiment_key: c0d4c8247c3b46ce8db4592fb1dbfda7
+    prefix: ''
+    experiment_name: HPVONPHILIPP
+  csv:
+    _target_: lightning.pytorch.loggers.csv_logs.CSVLogger
+    save_dir: C:/Users/phili/Desktop/Studium/8. Semester/Semesterarbeit/Tokenizer/logs/l1t_tokenization/runs/2026-04-20_00-26-17_HPVONPHILIPP_MountainousAbdominousness
+    name: csv/
+    prefix: ''
+  wandb:
+    project: l1t_tokenization
+    tags:
+    - vqvae
+    - l1t
+    - jetclass_kin
+    name: HPVONPHILIPP
+trainer:
+  _target_: lightning.Trainer
+  default_root_dir: C:/Users/phili/Desktop/Studium/8. Semester/Semesterarbeit/Tokenizer/logs/l1t_tokenization/runs/2026-04-20_00-26-17_HPVONPHILIPP_MountainousAbdominousness
+  min_epochs: 1
+  accelerator: gpu
+  devices: 1
+  num_nodes: 1
+  strategy: auto
+  enable_progress_bar: false
+  check_val_every_n_epoch: null
+  deterministic: false
+  num_sanity_val_steps: 0
+  max_steps: 20000
+  gradient_clip_val: 5
+  log_every_n_steps: 50
+  val_check_interval: 1000
+  limit_train_batches: 3906
+  limit_val_batches: 20
+paths:
+  log_dir: C:/Users/phili/Desktop/Studium/8. Semester/Semesterarbeit/Tokenizer/logs
+  output_dir: C:/Users/phili/Desktop/Studium/8. Semester/Semesterarbeit/Tokenizer/logs/l1t_tokenization/runs/2026-04-20_00-26-17_HPVONPHILIPP_MountainousAbdominousness
+  work_dir: C:\Users\phili\Desktop\Studium\8. Semester\Semesterarbeit\Tokenizer
+extras:
+  ignore_warnings: false
+  enforce_tags: true
+  print_config: true
+load_weights_from: false
+load_weights_strict: false
+continue_from_checkpoint: null
+project_name: l1t_tokenization
+run_note: VQ-VAE tokenizer trained on JetClass kinematics for CMS L1T phase space
+  coverage
